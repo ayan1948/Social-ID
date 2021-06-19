@@ -1,11 +1,11 @@
 package models
 
 type User struct {
-	Id         uint
-	Name       string
-	Email      string `gorm:"unique"`
-	Password   []byte
-	MediaLinks *MediaLinks `json:"mediaLinks"`
+	Id         uint   `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email" gorm:"unique"`
+	Password   []byte `json:"-"`
+	MediaLinks *MediaLinks
 }
 
 type MediaLinks struct {
