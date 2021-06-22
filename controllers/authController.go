@@ -83,7 +83,7 @@ func Login(c *fiber.Ctx) error {
 	})
 }
 
-func User(c *fiber.Ctx) error {
+func Profile(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 
 	token, err := jwt.ParseWithClaims(cookie, jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -101,6 +101,15 @@ func User(c *fiber.Ctx) error {
 	var user models.User
 
 	database.DB.Where("id = ?", claims.Issuer).First(&user)
+
+	return c.JSON(user)
+}
+
+func User(c *fiber.Ctx) error {
+
+	var user models.User
+
+	database.DB.First(&user, c.Params("id"))
 
 	return c.JSON(user)
 }
