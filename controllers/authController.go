@@ -12,8 +12,12 @@ import (
 
 const SecretKey = "secret"
 
+func Home(c *fiber.Ctx) error {
+	return c.SendString("Make an API request by adding /api/<request>")
+}
+
 func Register(c *fiber.Ctx) error {
-	var data map[string]string
+	var data map[string]string // array with string as a key and string as a value
 
 	if err := c.BodyParser(&data); err != nil {
 		return err
@@ -25,7 +29,6 @@ func Register(c *fiber.Ctx) error {
 		Email:    data["email"],
 		Password: password,
 	}
-
 	database.DB.Create(&user)
 
 	return c.JSON(user)
@@ -112,6 +115,36 @@ func User(c *fiber.Ctx) error {
 	database.DB.First(&user, c.Params("id"))
 
 	return c.JSON(user)
+}
+
+func EditProfileData(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	token, err := jwt.ParseWithClaims(cookie, jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated edit",
+		})
+	}
+
+	var data map[string]string
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	user := database.DB.Where("id = ?", claims.Issuer)
+	user.Updates(&data)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
 }
 
 func Logout(c *fiber.Ctx) error {
